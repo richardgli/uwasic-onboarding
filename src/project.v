@@ -29,6 +29,7 @@ module tt_um_uwasic_onboarding_richard_li (
     .nCS(ui_in[2]),
     .SCLK(ui_in[0]),
     .rst_n(rst_n),
+    .clk(clk),
     .en_reg_out_7_0(en_reg_out_7_0),
     .en_reg_out_15_8(en_reg_out_15_8),
     .en_reg_pwm_7_0(en_reg_pwm_7_0),

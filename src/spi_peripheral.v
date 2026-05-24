@@ -65,14 +65,14 @@ module spi_peripheral (
             pwm_duty_cycle <= 0;
             transaction_processed <= 0;
         end else if ((transaction_ready && !transaction_processed) && num_bits == 5'd16 && data[15]) begin
-            case (data[7:1]) begin
+            case (data[7:1]) 
                 7'd0: en_reg_out_7_0 <= data[15:8];
                 7'd1: en_reg_out_15_8 <= data[15:8];
                 7'd2: en_reg_pwm_7_0 <= data[15:8];
                 7'd3: en_reg_pwm_15_8 <= data[15:8];
                 7'd4: pwm_duty_cycle <= data[15:8];
                 default: ;
-            end
+            endcase
 
             transaction_processed <= 1;
         end else if (!transaction_ready && transaction_processed) begin
