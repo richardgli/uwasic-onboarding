@@ -33,7 +33,9 @@ module spi_peripheral (
             data <= 0;
             transaction_ready <= 0;
         end else if (!nCS2) begin
-            if ((SCLK3 && !SCLK2) && num_bits < 5'b16) begin
+            if (nCS1) begin
+                num_bits <= 0;
+            end else if ((SCLK3 && !SCLK2) && num_bits < 5'b16) begin
                 data <= {data[14:0], COPI2};
                 num_bits <= num_bits + 1;
             end 
