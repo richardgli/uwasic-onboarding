@@ -35,7 +35,7 @@ module spi_peripheral (
         end else if (!nCS2) begin
             if (nCS1) begin
                 num_bits <= 0;
-            end else if ((SCLK3 && !SCLK2) && num_bits < 5'b16) begin
+            end else if ((SCLK3 && !SCLK2) && num_bits < 5'd16) begin
                 data <= {data[14:0], COPI2};
                 num_bits <= num_bits + 1;
             end 
@@ -64,13 +64,13 @@ module spi_peripheral (
             en_reg_pwm_15_8 <= 0;
             pwm_duty_cycle <= 0;
             transaction_processed <= 0;
-        end else if ((transaction_ready && !transaction_processed) && num_bits == 5'b16 && data[15]) begin
+        end else if ((transaction_ready && !transaction_processed) && num_bits == 5'd16 && data[15]) begin
             case (data[7:1]) begin
-                7'b0: en_reg_out_7_0 <= data[15:8];
-                7'b1: en_reg_out_15_8 <= data[15:8];
-                7'b2: en_reg_pwm_7_0 <= data[15:8];
-                7'b3: en_reg_pwm_15_8 <= data[15:8];
-                7'b4: pwm_duty_cycle <= data[15:8];
+                7'd0: en_reg_out_7_0 <= data[15:8];
+                7'd1: en_reg_out_15_8 <= data[15:8];
+                7'd2: en_reg_pwm_7_0 <= data[15:8];
+                7'd3: en_reg_pwm_15_8 <= data[15:8];
+                7'd4: pwm_duty_cycle <= data[15:8];
                 default: ;
             end
 
