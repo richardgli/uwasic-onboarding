@@ -13,7 +13,7 @@ module spi_peripheral (
     output reg [7:0] pwm_duty_cycle
 );
     
-    reg [5:0] num_bits;
+    reg [4:0] num_bits;
 
     reg [15:0] data;
 
