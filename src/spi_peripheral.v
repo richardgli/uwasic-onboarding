@@ -26,9 +26,9 @@ module spi_peripheral (
         if (!rst_n) begin
             COPI2 <= 0;
             COPI1 <= 0;
-            nCS3 <= 0;
-            nCS2 <= 0;
-            nCS1 <= 0;
+            nCS3 <= 1;
+            nCS2 <= 1;
+            nCS1 <= 1;
             SCLK3 <= 0;
             SCLK2 <= 0;
             SCLK1 <= 0;
@@ -50,23 +50,25 @@ module spi_peripheral (
             data <= 0;
             transaction_ready <= 0;
             transaction_processed <= 0;
-        end else if (!nCS2 && nCS3) begin
-            num_bits <= 0;
-            transaction_ready <= 0;
-            transaction_processed <= 0;
-        end else if (num_bits < 5'd16 && (SCLK2 && !SCLK3)) begin
-            data <= {data[14:0], COPI2};
-            num_bits <= num_bits + 1;
-        end
+        end else begin
+            if (!nCS2 && nCS3) begin
+                num_bits <= 0;
+                transaction_ready <= 0;
+                transaction_processed <= 0;
+            end else if (num_bits < 5'd16 && (SCLK2 && !SCLK3)) begin
+                data <= {data[14:0], COPI2};
+                num_bits <= num_bits + 1;
+            end
 
-        if (nCS2 && !nCS3) begin
-            transaction_ready <= 1;
-        end else if ((transaction_ready && !transaction_processed) && num_bits == 5'd16 && data[15]) begin
-            transaction_processed <= 1;
-        end else if (transaction_ready && transaction_processed) begin
-            transaction_ready <= 0;
-        end else if (!transaction_ready && transaction_processed) begin
-            transaction_processed <= 0;
+            if (nCS2 && !nCS3) begin
+                transaction_ready <= 1;
+            end else if ((transaction_ready && !transaction_processed) && num_bits == 5'd16 && data[15]) begin
+                transaction_processed <= 1;
+            end else if (transaction_ready && transaction_processed) begin
+                transaction_ready <= 0;
+            end else if (!transaction_ready && transaction_processed) begin
+                transaction_processed <= 0;
+            end
         end
     end
 
