@@ -61,6 +61,8 @@ module spi_peripheral (
 
         if (nCS2 && !nCS3) begin
             transaction_ready <= 1;
+        end else if ((transaction_ready && !transaction_processed) && num_bits == 5'd16 && data[15]) begin
+            transaction_processed <= 1;
         end else if (transaction_ready && transaction_processed) begin
             transaction_ready <= 0;
         end else if (!transaction_ready && transaction_processed) begin
@@ -84,8 +86,6 @@ module spi_peripheral (
                 7'd4: pwm_duty_cycle <= data[7:0];
                 default: ;
             endcase
-
-            transaction_processed <= 1;
         end
     end
 endmodule
