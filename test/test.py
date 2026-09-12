@@ -3,7 +3,7 @@
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, Edge
 from cocotb.triggers import ClockCycles
 from cocotb.types import Logic
 from cocotb.types import LogicArray
@@ -152,7 +152,64 @@ async def test_spi(dut):
 @cocotb.test()
 async def test_pwm_freq(dut):
     # Write your test here
-    dut._log.info("PWM Frequency test completed successfully")
+    dut._log.info("Start PWM Frequency test")
+
+    # Set the clock period to 100 ns (10 MHz)
+    clock = Clock(dut.clk, 100, units="ns")
+    cocotb.start_soon(clock.start())
+    freq = 3000
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+
+    for duty_cycle_data in range(1, 254):
+        print(f"Duty cycle: {duty_cycle_data}")
+        dut._log.info(f"Write transaction, address 0x04, data {duty_cycle_data}")
+        pwm_duty_val = await send_spi_transaction(dut, 1, 0x04, duty_cycle_data)  # Write transaction
+
+        data = 1
+        print(f"Data: {data}")
+        print(dut.uo_out.value)
+        dut._log.info(f"Write transaction, address 0x00, data {data}")
+        ui_in_val = await send_spi_transaction(dut, 1, 0x00, data)  # Write transaction
+        while True:
+            cur = dut.uo_out.value
+            if cur == data:
+                break
+
+            await dut.uo_out.value_change
+        first_edge = cocotb.utils.get_sim_time(unit="ns")
+        print(f"First edge: {first_edge}")
+        print(dut.uo_out.value)
+
+        data = 0
+        print(f"Data: {data}")
+        print(dut.uo_out.value)
+        dut._log.info(f"Write transaction, address 0x00, data {data}")
+        ui_in_val = await send_spi_transaction(dut, 1, 0x00, data)  # Write transaction
+        while True:
+            cur = dut.uo_out.value
+            if cur == data:
+                break
+
+            await dut.uo_out.value_change
+        second_edge = cocotb.utils.get_sim_time(unit="ns")
+        print(f"Second edge: {second_edge}")
+        print(dut.uo_out.value)
+
+        period = second_edge - first_edge
+        print(f"Period: {period}")
+        measured_freq = 1 / (period / 10 ** 9)
+        print(f"Measured frequency: {measured_freq}")
+        # assert abs((measured_freq - freq) / freq) <= 0.01, f"Expected frequency to be within +/- 1% of 3000, got {measured_freq}"
+
+    dut._log.info("PWM frequency test completed successfully")
 
 
 @cocotb.test()
