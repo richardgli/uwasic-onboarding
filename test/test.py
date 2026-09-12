@@ -183,8 +183,8 @@ async def test_pwm_freq(dut):
             if cur == data:
                 break
 
-            await dut.uo_out.value_change
-        first_edge = cocotb.utils.get_sim_time(unit="ns")
+            await Edge(dut.uo_out)
+        first_edge = cocotb.utils.get_sim_time(units="ns")
         print(f"First edge: {first_edge}")
         print(dut.uo_out.value)
 
@@ -198,8 +198,8 @@ async def test_pwm_freq(dut):
             if cur == data:
                 break
 
-            await dut.uo_out.value_change
-        second_edge = cocotb.utils.get_sim_time(unit="ns")
+            await Edge(dut.uo_out)
+        second_edge = cocotb.utils.get_sim_time(units="ns")
         print(f"Second edge: {second_edge}")
         print(dut.uo_out.value)
 
