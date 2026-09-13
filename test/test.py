@@ -181,15 +181,27 @@ async def test_pwm_freq(dut):
         dut._log.info(f"Write transaction, address 0x04, data {duty_cycle_data}")
         pwm_duty_val = await send_spi_transaction(dut, 1, 0x04, duty_cycle_data)  # Write transaction
 
-        await Edge(dut.uo_out)
-        first_edge = cocotb.utils.get_sim_time(units="ns")
-        print(f"First edge: {first_edge}")
+        prev = dut.uo_out.value
+        while True:
+            await Edge(dut.uo_out)
+            cur = dut.uo_out.value
+            if (prev & 1) == 0 and (cur & 1) == 1:
+                first_edge = cocotb.utils.get_sim_time(units="ns")
+                print(f"First edge: {first_edge}")
+                break
+            prev = cur
 
-        await ClockCycles(dut.clk, 600)
 
-        await Edge(dut.uo_out)
-        second_edge = cocotb.utils.get_sim_time(units="ns")
-        print(f"Second edge: {second_edge}")
+        prev = dut.uo_out.value
+        while True:
+            await Edge(dut.uo_out)
+            cur = dut.uo_out.value
+            if (prev & 1) == 0 and (cur & 1) == 1:
+                second_edge = cocotb.utils.get_sim_time(units="ns")
+                print(f"Second edge: {second_edge}")
+                break
+            prev = cur
+
 
         period = second_edge - first_edge
         print(f"Period: {period}")
