@@ -170,14 +170,39 @@ async def test_pwm_freq(dut):
     dut.rst_n.value = 1
     await ClockCycles(dut.clk, 5)
 
-    dut._log.info(f"Write transaction, address 0x02, data 0x01")
-    ui_in_val = await send_spi_transaction(dut, 1, 0x02, 0x01)  # Write transaction
-
+    # Testing interaction between output and PWM enable registers
+    # Enabling output for the first bit
     dut._log.info(f"Write transaction, address 0x00, data 0x01")
     ui_in_val = await send_spi_transaction(dut, 1, 0x00, 0x01)  # Write transaction
 
-    for duty_cycle_data in range(1, 254):
-        print(f"Duty cycle: {duty_cycle_data}")
+    for _ in range(30000):
+        await ClockCycles(dut.clk, 1)
+        assert dut.uo_out.value == 0x01, f"Expected 0x01, got {dut.uo_out.value}"
+
+    # Disabling output for the first bit
+    dut._log.info(f"Write transaction, address 0x00, data 0x00")
+    ui_in_val = await send_spi_transaction(dut, 1, 0x00, 0x00)  # Write transaction
+
+    # Enabling PWM for the first bit
+    dut._log.info(f"Write transaction, address 0x02, data 0x01")
+    ui_in_val = await send_spi_transaction(dut, 1, 0x02, 0x01)  # Write transaction
+
+    # Setting duty cycle to 50%
+    dut._log.info(f"Write transaction, address 0x04, data 127")
+    pwm_duty_val = await send_spi_transaction(dut, 1, 0x04, 127)  # Write transaction
+
+    for _ in range(30000):
+        await ClockCycles(dut.clk, 1)
+        assert dut.uo_out.value == 0x00, f"Expected 0x00, got {dut.uo_out.value}"
+
+    # Enabling output for the first bit
+    dut._log.info(f"Write transaction, address 0x00, data 0x01")
+    ui_in_val = await send_spi_transaction(dut, 1, 0x00, 0x01)  # Write transaction
+
+
+    # Testing correct frequency
+    for duty_cycle_data in range(1, 255):
+        dut._log.info(f"Duty cycle: {duty_cycle_data}")
         dut._log.info(f"Write transaction, address 0x04, data {duty_cycle_data}")
         pwm_duty_val = await send_spi_transaction(dut, 1, 0x04, duty_cycle_data)  # Write transaction
 
@@ -187,10 +212,9 @@ async def test_pwm_freq(dut):
             cur = dut.uo_out.value
             if (prev & 1) == 0 and (cur & 1) == 1:
                 first_edge = cocotb.utils.get_sim_time(units="ns")
-                print(f"First edge: {first_edge}")
+                dut._log.info(f"First edge: {first_edge}")
                 break
             prev = cur
-
 
         prev = dut.uo_out.value
         while True:
@@ -198,16 +222,15 @@ async def test_pwm_freq(dut):
             cur = dut.uo_out.value
             if (prev & 1) == 0 and (cur & 1) == 1:
                 second_edge = cocotb.utils.get_sim_time(units="ns")
-                print(f"Second edge: {second_edge}")
+                dut._log.info(f"Second edge: {second_edge}")
                 break
             prev = cur
 
-
         period = second_edge - first_edge
-        print(f"Period: {period}")
+        dut._log.info(f"Period: {period}")
 
         measured_freq = 1 / (period / 10 ** 9)
-        print(f"Measured frequency: {measured_freq}")
+        dut._log.info(f"Measured frequency: {measured_freq}")
 
         assert abs((measured_freq - freq) / freq) <= 0.01, f"Expected frequency to be within +/- 1% of 3000, got {measured_freq}"
 
