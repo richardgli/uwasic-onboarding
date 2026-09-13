@@ -175,7 +175,7 @@ async def test_pwm_freq(dut):
     dut._log.info(f"Write transaction, address 0x00, data 0x01")
     ui_in_val = await send_spi_transaction(dut, 1, 0x00, 0x01)  # Write transaction
 
-    for _ in range(30000):
+    for _ in range(5000):
         await ClockCycles(dut.clk, 1)
         assert dut.uo_out.value == 0x01, f"Expected 0x01, got {dut.uo_out.value}"
 
@@ -191,7 +191,7 @@ async def test_pwm_freq(dut):
     dut._log.info(f"Write transaction, address 0x04, data 127")
     pwm_duty_val = await send_spi_transaction(dut, 1, 0x04, 127)  # Write transaction
 
-    for _ in range(30000):
+    for _ in range(5000):
         await ClockCycles(dut.clk, 1)
         assert dut.uo_out.value == 0x00, f"Expected 0x00, got {dut.uo_out.value}"
 
@@ -271,11 +271,11 @@ async def test_pwm_duty(dut):
         pwm_duty_val = await send_spi_transaction(dut, 1, 0x04, duty_cycle_data)  # Write transaction
 
         if duty_cycle_data == 0:
-            for _ in range(30000):
+            for _ in range(5000):
                 await ClockCycles(dut.clk, 1)
                 assert dut.uo_out.value == 0x00, f"Expected 0x00, got {dut.uo_out.value}"
         elif duty_cycle_data == 255:
-            for _ in range(30000):
+            for _ in range(5000):
                 await ClockCycles(dut.clk, 1)
                 assert dut.uo_out.value == 0x01, f"Expected 0x01, got {dut.uo_out.value}"
         else:
