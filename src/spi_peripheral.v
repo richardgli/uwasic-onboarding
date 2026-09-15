@@ -21,7 +21,7 @@ module spi_peripheral (
     reg nCS1, nCS2, nCS3;
     reg SCLK1, SCLK2, SCLK3;
     reg transaction_ready, transaction_processed;
-    wire ready_to_process = transaction_ready && !transaction_processed && num_bits > 4'd15 && data[15];
+    reg ready_to_process = transaction_ready && !transaction_processed && num_bits > 4'd15 && data[15];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
