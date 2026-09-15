@@ -13,7 +13,7 @@ module spi_peripheral (
     output reg [7:0] pwm_duty_cycle
 );
     
-    reg [4:0] num_bits;
+    reg [3:0] num_bits;
 
     reg [15:0] data;
 
@@ -21,7 +21,7 @@ module spi_peripheral (
     reg nCS1, nCS2, nCS3;
     reg SCLK1, SCLK2, SCLK3;
     reg transaction_ready, transaction_processed;
-    reg ready_to_process = transaction_ready && !transaction_processed && num_bits == 5'd16 && data[15];
+    wire ready_to_process = transaction_ready && !transaction_processed && num_bits > 4'd15 && data[15];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
