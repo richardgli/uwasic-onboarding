@@ -21,6 +21,7 @@ module spi_peripheral (
     reg nCS1, nCS2, nCS3;
     reg SCLK1, SCLK2, SCLK3;
     reg transaction_ready, transaction_processed;
+    reg ready_to_process = transaction_ready && !transaction_processed && num_bits == 5'd16 && data[15];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -62,7 +63,7 @@ module spi_peripheral (
 
             if (nCS2 && !nCS3) begin
                 transaction_ready <= 1;
-            end else if ((transaction_ready && !transaction_processed) && num_bits == 5'd16 && data[15]) begin
+            end else if (ready_to_process) begin
                 transaction_processed <= 1;
             end else if (transaction_ready && transaction_processed) begin
                 transaction_ready <= 0;
@@ -79,7 +80,7 @@ module spi_peripheral (
             en_reg_pwm_7_0 <= 0;
             en_reg_pwm_15_8 <= 0;
             pwm_duty_cycle <= 0;
-        end else if ((transaction_ready && !transaction_processed) && num_bits == 5'd16 && data[15]) begin
+        end else if (ready_to_process) begin
             case (data[14:8])
                 7'd0: en_reg_out_7_0 <= data[7:0];
                 7'd1: en_reg_out_15_8 <= data[7:0];
