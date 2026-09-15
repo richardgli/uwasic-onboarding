@@ -13,15 +13,14 @@ module spi_peripheral (
     output reg [7:0] pwm_duty_cycle
 );
     
-    reg [3:0] num_bits;
+    reg [4:0] num_bits;
 
     reg [15:0] data;
 
     reg COPI1, COPI2;
     reg nCS1, nCS2, nCS3;
-    reg SCLK1, SCLK2, SCLK3;
+    reg SCLK1, SCLK2;
     reg transaction_ready, transaction_processed;
-    reg ready_to_process = transaction_ready && !transaction_processed && num_bits > 4'd15 && data[15];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -30,7 +29,6 @@ module spi_peripheral (
             nCS3 <= 1;
             nCS2 <= 1;
             nCS1 <= 1;
-            SCLK3 <= 0;
             SCLK2 <= 0;
             SCLK1 <= 0;
         end else begin
@@ -39,7 +37,6 @@ module spi_peripheral (
             nCS3 <= nCS2;
             nCS2 <= nCS1;
             nCS1 <= nCS;
-            SCLK3 <= SCLK2;
             SCLK2 <= SCLK1;
             SCLK1 <= SCLK;
         end
@@ -56,14 +53,14 @@ module spi_peripheral (
                 num_bits <= 0;
                 transaction_ready <= 0;
                 transaction_processed <= 0;
-            end else if (num_bits < 5'd16 && (SCLK2 && !SCLK3)) begin
+            end else if (num_bits < 5'd16 && (SCLK1 && !SCLK2)) begin
                 data <= {data[14:0], COPI2};
                 num_bits <= num_bits + 1;
             end
 
             if (nCS2 && !nCS3) begin
                 transaction_ready <= 1;
-            end else if (ready_to_process) begin
+            end else if (transaction_ready && !transaction_processed && num_bits == 5'd16 && data[15]) begin
                 transaction_processed <= 1;
             end else if (transaction_ready && transaction_processed) begin
                 transaction_ready <= 0;
@@ -80,7 +77,7 @@ module spi_peripheral (
             en_reg_pwm_7_0 <= 0;
             en_reg_pwm_15_8 <= 0;
             pwm_duty_cycle <= 0;
-        end else if (ready_to_process) begin
+        end else if (transaction_ready && !transaction_processed && num_bits == 5'd16 && data[15]) begin
             case (data[14:8])
                 7'd0: en_reg_out_7_0 <= data[7:0];
                 7'd1: en_reg_out_15_8 <= data[7:0];
